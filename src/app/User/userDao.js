@@ -19,15 +19,27 @@ async function selectUserEmail(connection, email) {
   return emailRows;
 }
 
-// userId 회원 조회
-async function selectUserIdx(connection, userIdx) {
-  const selectUserIdxQuery = `
-                 SELECT email, nickname, name
-                 FROM User 
-                 WHERE userIdx = ?;
+// userInfo 조회
+async function selectUserInfo(connection, userIdx) {
+  const selectUserInfoQuery = `
+  SELECT name, nickName, profileImgUrl, introduce, webstie,
+  IF(postCount is null, 0, postCount) as postCount ,
+      IF(followerCount is null, 0, followerCount) as followCount,
+     IF(followingCount is null, 0, followingCount) as followingCount
+FROM user
+left join (select userIdx, COUNT(postIdx) as postCount from  post
+where status='ACTIVE' group by userIdx) p on p.userIdx = user.userIdx
+left join (select followerIdx, COUNT(followIdx)
+   as followerCount from \`0407\`.follow where status = 'ACTIVE' group by followerIdx)
+   f1 on f1.followerIdx = user.userIdx
+left join (select followeeIdx, COUNT(followIdx)
+   as followingCount from \`0407\`.follow where status = 'ACTIVE' group by followeeIdx)
+ f2 on f2.followeeIdx = user.userIdx
+ where user.userIdx = ? and user.status ='ACTIVE'
+ group by user.userIdx
                  `;
-  const [userRow] = await connection.query(selectUserIdxQuery, userIdx);
-  return userRow;
+  const [userInfoRow] = await connection.query(selectUserInfoQuery, userIdx);
+  return userInfoRow;
 }
 
 // 유저 생성
@@ -84,7 +96,7 @@ async function updateUserInfo(connection, id, nickname) {
 module.exports = {
   selectUser,
   selectUserEmail,
-  selectUserIdx,
+  selectUserInfo,
   insertUserInfo,
   selectUserPassword,
   selectUserAccount,

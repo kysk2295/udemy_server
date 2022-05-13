@@ -3,6 +3,7 @@ const userProvider = require("../../app/User/userProvider");
 const userService = require("../../app/User/userService");
 const baseResponse = require("../../../config/baseResponseStatus");
 const {response, errResponse} = require("../../../config/response");
+const postProvider = require('../Post/postProvider');
 
 const regexEmail = require("regex-email");
 const {emit} = require("nodemon");
@@ -95,8 +96,13 @@ exports.getUser = async function (req, res) {
         return res.send(errResponse(baseResponse.USER_USERIDX_LENGTH));
     }
 
-    const userIdxResult = await userProvider.retrieveUser(userIdx);
-    return res.send(response(baseResponse.SUCCESS, userIdxResult))
+    const userInfo = await userProvider.retrieveUserInfo(userIdx);
+    const userPosts = await postProvider.retriveUserPosts(userIdx);
+
+    return res.send(response(baseResponse.SUCCESS,{
+        userInfo: userInfo,
+        userPosts: userPosts
+    }));
 }
 
 /**
