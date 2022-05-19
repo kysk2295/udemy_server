@@ -26,7 +26,7 @@ async function selectUserInfo(connection, userIdx) {
   IF(postCount is null, 0, postCount) as postCount ,
       IF(followerCount is null, 0, followerCount) as followCount,
      IF(followingCount is null, 0, followingCount) as followingCount
-FROM user
+FROM User
 left join (select userIdx, COUNT(postIdx) as postCount from  post
 where status='ACTIVE' group by userIdx) p on p.userIdx = user.userIdx
 left join (select followerIdx, COUNT(followIdx)
